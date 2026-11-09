@@ -34,6 +34,9 @@ interface DeletionResponse {
 }
 
 export default function DeleteUserDataPage() {
+  // Portal Tab state
+  const [activePortalTab, setActivePortalTab] = useState<'erase' | 'export'>('erase');
+
   // Form states
   const [email, setEmail] = useState('');
   const [scope, setScope] = useState('all');
@@ -298,9 +301,112 @@ export default function DeleteUserDataPage() {
       {/* Main Grid: Server Request Form & Tracker */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-12">
         
-        {/* Left Column: Official Server Deletion Form */}
+        {/* Left Column: Official Server Deletion & Export Form */}
         <div className="lg:col-span-7">
           <div className="glass-panel rounded-3xl p-6 sm:p-8 border border-slate-800 bg-slate-950/70 shadow-xl space-y-6">
+            
+            {/* Dual Mode Switcher Tabs */}
+            <div className="flex p-1 rounded-2xl bg-slate-900 border border-slate-800 space-x-1">
+              <button
+                type="button"
+                onClick={() => setActivePortalTab('erase')}
+                className={`flex-1 py-2 px-3 rounded-xl text-xs font-semibold transition-all flex items-center justify-center space-x-2 ${
+                  activePortalTab === 'erase'
+                    ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40 shadow-sm'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>Right to Erasure (Delete Data)</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setActivePortalTab('export')}
+                className={`flex-1 py-2 px-3 rounded-xl text-xs font-semibold transition-all flex items-center justify-center space-x-2 ${
+                  activePortalTab === 'export'
+                    ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 shadow-sm'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                <Download className="w-3.5 h-3.5" />
+                <span>Right to Portability (Export Data)</span>
+              </button>
+            </div>
+
+            {activePortalTab === 'export' ? (
+              /* GDPR Art. 20 Export Section */
+              <div className="space-y-5 animate-in fade-in">
+                <div>
+                  <div className="flex items-center space-x-2 text-cyan-400 text-xs font-mono uppercase tracking-wider mb-1">
+                    <Download className="w-4 h-4" />
+                    <span>GDPR Art. 20 / CCPA Portability</span>
+                  </div>
+                  <h2 className="text-xl font-bold text-white">
+                    Export Your Personal Data Archive
+                  </h2>
+                  <p className="text-xs text-slate-400 mt-1">
+                    Download an authentic, structured, machine-readable JSON package containing all telemetry, project records, and consent logs linked to your email.
+                  </p>
+                </div>
+
+                {exportError && (
+                  <div className="p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs font-medium flex items-center space-x-2">
+                    <AlertTriangle className="w-4 h-4 shrink-0" />
+                    <span>{exportError}</span>
+                  </div>
+                )}
+
+                {exportSuccess ? (
+                  <div className="p-6 rounded-2xl bg-cyan-950/20 border border-cyan-500/30 space-y-4">
+                    <div className="flex items-center space-x-3 text-cyan-400">
+                      <CheckCircle2 className="w-7 h-7" />
+                      <div>
+                        <h3 className="text-base font-bold text-white">Data Package Generated & Downloaded</h3>
+                        <p className="text-xs text-cyan-300 font-mono">Archive ID: {exportSuccess.exportId}</p>
+                      </div>
+                    </div>
+                    <p className="text-xs text-slate-300">
+                      A structured JSON file was saved to your downloads folder. You can review the data or proceed with permanent erasure whenever you are ready.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => setExportSuccess(null)}
+                      className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium"
+                    >
+                      Export Another Address
+                    </button>
+                  </div>
+                ) : (
+                  <form onSubmit={handleExportData} className="space-y-4">
+                    <div>
+                      <label className="block text-xs font-medium text-slate-300 mb-1">
+                        Registered Email Address *
+                      </label>
+                      <input
+                        type="email"
+                        required
+                        value={exportEmail}
+                        onChange={(e) => setExportEmail(e.target.value)}
+                        placeholder="you@domain.com"
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-white text-xs placeholder-slate-500 focus:outline-none focus:border-cyan-500"
+                      />
+                    </div>
+
+                    <button
+                      type="submit"
+                      disabled={exportLoading}
+                      className="w-full py-3 rounded-xl bg-gradient-to-r from-cyan-600 to-indigo-600 hover:from-cyan-500 hover:to-indigo-500 text-white text-xs font-bold tracking-wide uppercase shadow-lg shadow-cyan-950/40 transition-all flex items-center justify-center space-x-2"
+                    >
+                      <Download className="w-4 h-4" />
+                      <span>{exportLoading ? 'Compiling Archive...' : 'Download My Data Archive (JSON)'}</span>
+                    </button>
+                  </form>
+                )}
+              </div>
+            ) : (
+              /* Erasure Section */
+              <>
             <div>
               <div className="flex items-center space-x-2 text-rose-400 text-xs font-mono uppercase tracking-wider mb-1">
                 <Server className="w-4 h-4" />
@@ -463,6 +569,8 @@ export default function DeleteUserDataPage() {
                   <span>{loading ? 'Processing Erasure...' : 'Permanently Delete My Data'}</span>
                 </button>
               </form>
+            )}
+            </>
             )}
           </div>
         </div>
