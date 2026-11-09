@@ -157,3 +157,4 @@ export default function Project3DPreview({ projectId, themeColor, category }: Pr
     </div>
   );
 }
+
